@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Automation Initiatives — Loan Mountain Capital</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #1C2B3A;
+    --navy-mid: #2D4A63;
+    --blue-accent: #3B82F6;
+    --bg: #EEF2F7;
+    --card-bg: #FFFFFF;
+    --border: #D1DCE8;
+    --text-primary: #1C2B3A;
+    --text-secondary: #5A7291;
+    --text-muted: #8FA3BB;
+
+    --pipeline-border: #F5B942;
+    --pipeline-badge: #633806;
+    --pipeline-badge-bg: #FAEEDA;
+    --pipeline-header: #92600A;
+
+    --inprogress-border: #3B82F6;
+    --inprogress-badge: #0C447C;
+    --inprogress-badge-bg: #E6F1FB;
+    --inprogress-header: #1D4ED8;
+
+    --blocked-border: #EF4444;
+    --blocked-badge: #791F1F;
+    --blocked-badge-bg: #FCEBEB;
+    --blocked-header: #B91C1C;
+
+    --complete-border: #22C55E;
+    --complete-badge: #085041;
+    --complete-badge-bg: #E1F5EE;
+    --complete-header: #15803D;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+  }
+
+  .header {
+    background: var(--navy);
+    padding: 18px 24px 14px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    border-bottom: 2px solid var(--blue-accent);
+  }
+  .header-left h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .header-left p {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .add-btn {
+    background: var(--blue-accent);
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .add-btn:hover { background: #2563EB; }
+
+  .stats-bar {
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    padding: 10px 24px;
+    display: flex;
+    gap: 24px;
+    align-items: center;
+  }
+  .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-family: 'DM Mono', monospace;
+  }
+  .stat-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .stat-item strong { color: var(--text-primary); font-size: 14px; }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    padding: 20px 24px;
+    min-height: calc(100vh - 120px);
+  }
+
+  .column { display: flex; flex-direction: column; }
+
+  .col-header {
+    padding: 12px 14px 10px;
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-left: 3px solid;
+    background: var(--card-bg);
+    border-top: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+  }
+  .col-header-left { display: flex; align-items: center; gap: 8px; }
+  .col-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .col-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: 99px;
+    font-weight: 500;
+  }
+
+  .col-pipeline .col-header  { border-left-color: var(--pipeline-border); }
+  .col-pipeline .col-title   { color: var(--pipeline-header); }
+  .col-pipeline .col-count   { background: var(--pipeline-badge-bg); color: var(--pipeline-badge); }
+
+  .col-inprogress .col-header { border-left-color: var(--inprogress-border); }
+  .col-inprogress .col-title  { color: var(--inprogress-header); }
+  .col-inprogress .col-count  { background: var(--inprogress-badge-bg); color: var(--inprogress-badge); }
+
+  .col-blocked .col-header   { border-left-color: var(--blocked-border); }
+  .col-blocked .col-title    { color: var(--blocked-header); }
+  .col-blocked .col-count    { background: var(--blocked-badge-bg); color: var(--blocked-badge); }
+
+  .col-complete .col-header  { border-left-color: var(--complete-border); }
+  .col-complete .col-title   { color: var(--complete-header); }
+  .col-complete .col-count   { background: var(--complete-badge-bg); color: var(--complete-badge); }
+
+  .col-body {
+    flex: 1;
+    padding: 8px;
+    background: #F3F7FC;
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    min-height: 200px;
+    transition: background 0.15s;
+  }
+  .col-body.drag-over { background: #E2ECF8; }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 12px 10px;
+    margin-bottom: 8px;
+    cursor: grab;
+    transition: box-shadow 0.15s, transform 0.1s;
+  }
+  .card:hover { box-shadow: 0 4px 12px rgba(28,43,58,0.1); transform: translateY(-1px); }
+  .card.dragging { opacity: 0.45; cursor: grabbing; }
+
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.4;
+    flex: 1;
+    padding-right: 8px;
+  }
+  .card-actions { display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s; }
+  .card:hover .card-actions { opacity: 1; }
+  .card-btn {
+    background: none; border: none; cursor: pointer; padding: 2px;
+    color: var(--text-muted); font-size: 13px; line-height: 1;
+    border-radius: 3px; transition: color 0.1s, background 0.1s;
+  }
+  .card-btn:hover { color: var(--text-primary); background: var(--bg); }
+  .card-btn.del:hover { color: #EF4444; }
+
+  .card-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .priority-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    padding: 2px 7px;
+    border-radius: 99px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .priority-High   { background: var(--blocked-badge-bg); color: var(--blocked-badge); }
+  .priority-Medium { background: var(--pipeline-badge-bg); color: var(--pipeline-badge); }
+  .priority-Low    { background: var(--complete-badge-bg); color: var(--complete-badge); }
+
+  .card-date { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-muted); }
+  .card-notes {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 6px;
+    line-height: 1.45;
+    border-top: 1px solid var(--bg);
+    padding-top: 6px;
+  }
+
+  .empty-col {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 20px 0;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(28,43,58,0.55);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100; opacity: 0; pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: #fff;
+    border-radius: 10px;
+    padding: 24px;
+    width: 420px;
+    max-width: 95vw;
+    box-shadow: 0 20px 60px rgba(28,43,58,0.2);
+    transform: translateY(12px);
+    transition: transform 0.2s;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 16px;
+  }
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 5px;
+    font-family: 'DM Mono', monospace;
+  }
+  .field input, .field select, .field textarea {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--text-primary);
+    background: #fff;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--blue-accent); }
+  .field textarea { resize: vertical; min-height: 70px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+  .btn-cancel {
+    background: var(--bg); color: var(--text-secondary); border: 1px solid var(--border);
+    padding: 8px 16px; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer;
+  }
+  .btn-save {
+    background: var(--blue-accent); color: #fff; border: none;
+    padding: 8px 16px; border-radius: 6px; font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+  }
+  .btn-save:hover { background: #2563EB; }
+
+  @media (max-width: 800px) {
+    .board { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 500px) {
+    .board { grid-template-columns: 1fr; padding: 12px; }
+    .header { flex-direction: column; align-items: flex-start; gap: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Automation Initiatives</h1>
+    <p>Loan Mountain Capital · Updated by Sergio Vega</p>
+  </div>
+  <button class="add-btn" onclick="openModal()">+ Add Initiative</button>
+</div>
+
+<div class="stats-bar" id="stats-bar"></div>
+
+<div class="board">
+  <div class="column col-pipeline">
+    <div class="col-header">
+      <div class="col-header-left">
+        <span class="col-title">Pipeline</span>
+        <span class="col-count" id="count-Pipeline">0</span>
+      </div>
+    </div>
+    <div class="col-body" id="body-Pipeline" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'Pipeline')"></div>
+  </div>
+  <div class="column col-inprogress">
+    <div class="col-header">
+      <div class="col-header-left">
+        <span class="col-title">In Progress</span>
+        <span class="col-count" id="count-In Progress">0</span>
+      </div>
+    </div>
+    <div class="col-body" id="body-In Progress" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'In Progress')"></div>
+  </div>
+  <div class="column col-blocked">
+    <div class="col-header">
+      <div class="col-header-left">
+        <span class="col-title">Blocked</span>
+        <span class="col-count" id="count-Blocked">0</span>
+      </div>
+    </div>
+    <div class="col-body" id="body-Blocked" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'Blocked')"></div>
+  </div>
+  <div class="column col-complete">
+    <div class="col-header">
+      <div class="col-header-left">
+        <span class="col-title">Complete</span>
+        <span class="col-count" id="count-Complete">0</span>
+      </div>
+    </div>
+    <div class="col-body" id="body-Complete" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'Complete')"></div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h2 id="modal-title">New Initiative</h2>
+    <div class="field">
+      <label>Initiative Name</label>
+      <input type="text" id="f-name" placeholder="Describe the initiative...">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Priority</label>
+        <select id="f-priority">
+          <option>High</option>
+          <option selected>Medium</option>
+          <option>Low</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Status</label>
+        <select id="f-status">
+          <option>Pipeline</option>
+          <option>In Progress</option>
+          <option>Blocked</option>
+          <option>Complete</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Requestor</label>
+      <input type="text" id="f-requestor" placeholder="Who requested this?">
+    </div>
+    <div class="field">
+      <label>Notes</label>
+      <textarea id="f-notes" placeholder="Context, blockers, links..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveCard()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Data is stored in localStorage so it persists in the browser ──
+  const STATUSES = ['Pipeline','In Progress','Blocked','Complete'];
+  let initiatives = [];
+  let dragId = null;
+  let editId = null;
+
+  const defaultData = [
+    { id: '1', name: 'Market Analysis Automation (Deal Submission trigger)', priority: 'High', status: 'In Progress', requestor: 'Sergio', notes: 'Exploring providers; AEs must submit full addresses to UW channel for precision', date: '4/8/2026' },
+    { id: '2', name: 'Provider Evaluation & Selection', priority: 'Medium', status: 'In Progress', requestor: 'Sergio', notes: 'Comparing vendor options for market analysis integration', date: '4/8/2026' },
+    { id: '3', name: 'Full Address Submission Compliance', priority: 'High', status: 'Blocked', requestor: 'Sergio', notes: 'AEs submitting partial addresses — needs process enforcement from leadership', date: '4/8/2026' },
+  ];
+
+  function load() {
+    try {
+      const saved = localStorage.getItem('lmc-initiatives');
+      initiatives = saved ? JSON.parse(saved) : defaultData;
+    } catch(e) {
+      initiatives = defaultData;
+    }
+    render();
+  }
+
+  function save() {
+    try { localStorage.setItem('lmc-initiatives', JSON.stringify(initiatives)); } catch(e) {}
+  }
+
+  function render() {
+    STATUSES.forEach(s => {
+      const body = document.getElementById('body-' + s);
+      const items = initiatives.filter(i => i.status === s);
+      document.getElementById('count-' + s).textContent = items.length;
+      body.innerHTML = items.length === 0
+        ? `<div class="empty-col">No items</div>`
+        : items.map(cardHTML).join('');
+    });
+    renderStats();
+  }
+
+  function cardHTML(item) {
+    return `
+      <div class="card" draggable="true" id="card-${item.id}"
+        ondragstart="onDragStart(event,'${item.id}')"
+        ondragend="onDragEnd(event)">
+        <div class="card-top">
+          <div class="card-title">${item.name}</div>
+          <div class="card-actions">
+            <button class="card-btn" onclick="openModal('${item.id}')" title="Edit">✎</button>
+            <button class="card-btn del" onclick="deleteCard('${item.id}')" title="Delete">✕</button>
+          </div>
+        </div>
+        <div class="card-meta">
+          <span class="priority-badge priority-${item.priority}">${item.priority}</span>
+          ${item.requestor ? `<span class="card-date">${item.requestor}</span>` : ''}
+          <span class="card-date">${item.date}</span>
+        </div>
+        ${item.notes ? `<div class="card-notes">${item.notes}</div>` : ''}
+      </div>`;
+  }
+
+  function renderStats() {
+    const dotColors = {'Pipeline':'#F5B942','In Progress':'#3B82F6','Blocked':'#EF4444','Complete':'#22C55E'};
+    document.getElementById('stats-bar').innerHTML = STATUSES.map(s =>
+      `<div class="stat-item">
+        <span class="stat-dot" style="background:${dotColors[s]}"></span>
+        <strong>${initiatives.filter(i => i.status === s).length}</strong> ${s}
+      </div>`
+    ).join('<span style="color:var(--border);font-size:18px">·</span>');
+  }
+
+  function onDragStart(e, id) {
+    dragId = id;
+    setTimeout(() => document.getElementById('card-' + id)?.classList.add('dragging'), 0);
+  }
+  function onDragEnd() { document.querySelectorAll('.card').forEach(c => c.classList.remove('dragging')); }
+  function onDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+  function onDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+  function onDrop(e, status) {
+    e.preventDefault();
+    e.currentTarget.classList.remove('drag-over');
+    if (!dragId) return;
+    const item = initiatives.find(i => i.id === dragId);
+    if (item) { item.status = status; save(); render(); }
+    dragId = null;
+  }
+
+  function openModal(id = null) {
+    editId = id;
+    const item = id ? initiatives.find(i => i.id === id) : null;
+    document.getElementById('modal-title').textContent = id ? 'Edit Initiative' : 'New Initiative';
+    document.getElementById('f-name').value = item?.name || '';
+    document.getElementById('f-priority').value = item?.priority || 'Medium';
+    document.getElementById('f-status').value = item?.status || 'Pipeline';
+    document.getElementById('f-requestor').value = item?.requestor || '';
+    document.getElementById('f-notes').value = item?.notes || '';
+    document.getElementById('modal-overlay').classList.add('open');
+    setTimeout(() => document.getElementById('f-name').focus(), 200);
+  }
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('open');
+    editId = null;
+  }
+  function saveCard() {
+    const name = document.getElementById('f-name').value.trim();
+    if (!name) { document.getElementById('f-name').focus(); return; }
+    const today = new Date().toLocaleDateString('en-US', {month:'numeric',day:'numeric',year:'numeric'});
+    if (editId) {
+      const item = initiatives.find(i => i.id === editId);
+      Object.assign(item, {
+        name,
+        priority: document.getElementById('f-priority').value,
+        status: document.getElementById('f-status').value,
+        requestor: document.getElementById('f-requestor').value.trim(),
+        notes: document.getElementById('f-notes').value.trim(),
+      });
+    } else {
+      initiatives.push({
+        id: Date.now().toString(),
+        name, date: today,
+        priority: document.getElementById('f-priority').value,
+        status: document.getElementById('f-status').value,
+        requestor: document.getElementById('f-requestor').value.trim(),
+        notes: document.getElementById('f-notes').value.trim(),
+      });
+    }
+    save(); render(); closeModal();
+  }
+  function deleteCard(id) {
+    initiatives = initiatives.filter(i => i.id !== id);
+    save(); render();
+  }
+
+  document.getElementById('modal-overlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-overlay')) closeModal();
+  });
+
+  load();
+</script>
+</body>
+</html>
