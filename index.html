@@ -520,6 +520,16 @@
     return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
 
+  function cleanDate(str) {
+    if (!str) return '';
+    // If it's already a short date like 4/30/2026, return as-is
+    if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(str)) return str;
+    // Otherwise parse and reformat
+    const d = new Date(str);
+    if (isNaN(d)) return str;
+    return (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
+  }
+
   function cardHTML(item) {
     return `
       <div class="card" draggable="true" id="card-${item.id}"
@@ -535,7 +545,7 @@
         <div class="card-meta">
           <span class="priority-badge priority-${esc(item.priority)}">${esc(item.priority)}</span>
           ${item.requestor ? `<span class="card-date">${esc(item.requestor)}</span>` : ''}
-          <span class="card-date">${esc(item.date)}</span>
+          <span class="card-date">${cleanDate(item.date)}</span>
         </div>
         ${item.notes ? `<div class="card-notes">${esc(item.notes)}</div>` : ''}
       </div>`;
