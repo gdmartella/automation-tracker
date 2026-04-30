@@ -537,7 +537,7 @@
   async function loadFromSheet() {
     document.getElementById('loading-overlay').classList.remove('hidden');
     try {
-      const res = await fetch(SCRIPT_URL + '?action=get');
+      const res = await fetch(SCRIPT_URL + '?action=get', { redirect: 'follow' });
       const data = await res.json();
       initiatives = data;
       render();
@@ -552,10 +552,10 @@
   async function pushToSheet(action, payload) {
     showSync('syncing', 'Saving...');
     try {
-      await fetch(SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action, ...payload }),
-      });
+      let url = SCRIPT_URL + '?action=' + action;
+      if (payload.item) url += '&item=' + encodeURIComponent(JSON.stringify(payload.item));
+      if (payload.id)   url += '&id='   + encodeURIComponent(payload.id);
+      await fetch(url, { redirect: 'follow' });
       showSync('saved', 'Saved');
     } catch(e) {
       showSync('error', 'Save failed');
