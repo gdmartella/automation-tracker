@@ -585,7 +585,7 @@
   // ── Modal ──
   function openModal(id = null) {
     editId = id;
-    const item = id ? initiatives.find(i => i.id === id) : null;
+    const item = id ? initiatives.find(i => String(i.id) === String(id)) : null;
     document.getElementById('modal-title').textContent = id ? 'Edit Initiative' : 'New Initiative';
     document.getElementById('f-name').value = item?.name || '';
     document.getElementById('f-priority').value = item?.priority || 'Medium';
